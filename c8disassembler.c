@@ -3,12 +3,14 @@
 
 
 void DisassembleCH8(unsigned char* buffer, int pc){
+	//A pointer to where the code that should be read is located
 	unsigned char* code = &buffer[pc];
 	//Shifts opcode 4 bits to the right so it only gets the first nibble.
-	//(In chip8 only the first nibble is important to figure out the instruction)
+	//(In chip8 only the first nibble is important to figure out the instruction. Though exceptions do occur.)
 	unsigned char firstNibble = (code[0] >> 4);
+	//Prints where in the program counter and opcode
 	printf("%04x %02x %02x ", pc, code[0], code[1]);
-	int opbytes = 1;
+	//Just making variables for different parts of the opcodes for future use
 	unsigned char secondNib = code[0] & 0x0f;
 	unsigned char thirdNib = code[1] >> 4;
 	unsigned char lastNib = code[1] & 0x0f;
@@ -51,9 +53,6 @@ void DisassembleCH8(unsigned char* buffer, int pc){
 			break;
 		case 0x08:
 			{
-				//unsigned char lastNib = code[1] & 0x0f;
-				//unsigned char thirdNib = code[1] >> 4;
-				//printf("  %01x %02x ", thirdNib, code[1]);
 				switch(lastNib){
 					case 0:
 						printf("MOV V%01x V%01x", secondNib, thirdNib);
@@ -112,6 +111,7 @@ void DisassembleCH8(unsigned char* buffer, int pc){
 					break;
 			}
 			break;
+		//TODO make less wonky and actually show what it does somehow
 		case 0x0f:
 			switch(code[1]){
 				case 0x07:
@@ -160,11 +160,13 @@ int main(int argc, char *argv[]){
 	int fileSize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-
+	//Allocates memory space for where the code is located
+	//CHIP-8 code also starts after 0x200
 	unsigned char *buffer = malloc(fileSize+0x200);
 	fread(buffer+0x200, 1, fileSize, fp);
 	fclose(fp);
-
+	
+	//Reads two bytes and then jumps two bytes forward
 	int pc = 0x200;
 	while(pc < (fileSize+0x200)){
 		DisassembleCH8(buffer, pc);
